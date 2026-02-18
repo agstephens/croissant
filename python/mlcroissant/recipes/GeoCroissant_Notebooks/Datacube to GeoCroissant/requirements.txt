@@ -1,0 +1,8 @@
+cf_xarray
+dask
+fsspec
+matplotlib
+nbconvert
+xarray
+zarr
+
