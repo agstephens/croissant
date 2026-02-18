@@ -26,6 +26,7 @@ dependencies = [
   "networkx",
   "pandas",
   "pandas-stubs",
+  "pip>=26.0.1",
   "python-dateutil",
   "rdflib",
   "requests",

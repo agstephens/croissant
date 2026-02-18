@@ -3,6 +3,7 @@
 
 import cf_xarray # noqa: F401
 from datetime import datetime
+import pandas as pd
 from pathlib import Path
 from typing import Optional, Dict, Any, Tuple
 import calendar
@@ -16,6 +17,8 @@ from big_geo_loader.utils import load_data_from_uri
 
 
 zpath = "DATASET_CACHE/ecmwf-era5X_oper_an_sfc_2000_2020_2t_repack.kr1.0.zarr"
+cpath = "era5_2000_2020_2t_croissant.json"
+
 
 def load_zarr(zarr_path: str | Path) -> xr.Dataset:
     ds = load_data_from_uri(str(zarr_path), {})
@@ -53,7 +56,7 @@ class DynamicCroissantConverter:
     def load_dataset(self) -> bool:
         """Load the dataset. Returns True if successful, False otherwise."""
         try:
-            print(f"Loading NASA POWER dataset from {self.zarr_url}...")
+            print(f"Loading dataset from {self.zarr_url}...")
             self.ds = load_data_from_uri(self.zarr_url, {})
             print(f"Dataset loaded successfully!")
             print(f"  - Dimensions: {self.ds.dims}")
@@ -114,7 +117,13 @@ class DynamicCroissantConverter:
             start, end = "01-01-01T00:00:00Z", "9999-12-31T00:00:00Z"
         else:
             time_values = self.ds.time.values
-            start, end = time_values[0].strftime("%Y-%m-%dT%H:%M:%SZ"), time_values[-1].strftime("%Y-%m-%dT%H:%M:%SZ")
+            start, end = [pd.to_datetime(tm).strftime("%Y-%m-%dT%H:%M:%SZ") for tm in [time_values[0], time_values[-1]]]
+
+        lat, lon = self.ds.cf["latitude"].values, self.ds.cf["longitude"].values
+        lat_mid = int((lat.max() + lat.min()) / 2)
+        lon_mid = int((lon.max() + lon.min()) / 2)
+        lat_diff = float(lat[lat_mid] - lat[lat_mid - 1]) if len(lat) > 1 else "undefined"
+        lon_diff = float(lon[lon_mid] - lon[lon_mid - 1]) if len(lon) > 1 else "undefined"
 
         # Create GeoCroissant metadata
         croissant = {
@@ -173,39 +182,29 @@ class DynamicCroissantConverter:
             "url": self.metadata.get("url", None),
             "keywords": self.metadata.get("keywords", []),
             "citeAs": self.metadata.get("citeAs", None),
-            "datePublished": self.metadata.get("datePublished", datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")),
+            "datePublished": self.metadata.get("datePublished", datetime.now().isoformat().split(".")[0]),
             "license": "https://creativecommons.org/licenses/by/4.0/",
-            "geocr:BoundingBox": [
-                ds.cf["latitude"].values.min(),
-                ds.cf["latitude"].values.min(),
-                ds.cf["longitude"].values.max(),
-                ds.cf["latitude"].values.max(),
-            ],
-            "geocr:temporalExtent": {"startDate": start_date, "endDate": end_date},
-            "geocr:spatialResolution": "0.5° lat × 0.625° lon",
+            "geocr:BoundingBox": [float(i) for i in [
+                self.ds.cf["latitude"].values.min(),
+                self.ds.cf["latitude"].values.min(),
+                self.ds.cf["longitude"].values.max(),
+                self.ds.cf["latitude"].values.max()
+            ]],
+            "geocr:temporalExtent": {"startDate": start, "endDate": end},
+            "geocr:spatialResolution": f"{lat_diff}° lat x {lon_diff}° lon",
             "geocr:coordinateReferenceSystem": "EPSG:4326",
             "geocr:mlTask": {
-                "@type": "geocr:Regression",
-                "taskType": "climate_prediction",
-                "evaluationMetric": "RMSE",
-                "applicationDomain": "climate_monitoring",
+                "FIXME_@type": "geocr:Regression",
+                "FIXME_taskType": "climate_prediction",
+                "FIXME_evaluationMetric": "RMSE",
+                "FIXME_applicationDomain": "climate_monitoring",
             },
             "distribution": [
                 {
                     "@type": "cr:FileObject",
-                    "@id": (
-                        f"zarr-store-{year}-{month:02d}"
-                        if month
-                        else f"zarr-store-{year}"
-                    ),
-                    "name": (
-                        f"zarr-store-{year}-{month:02d}"
-                        if month
-                        else f"zarr-store-{year}"
-                    ),
-                    "description": (
-                        f"Zarr datacube for NASA POWER data {description_suffix}"
-                    ),
+                    "@id": "FIXME",
+                    "name": "FIXME",
+                    "description": "FIXME",
                     "contentUrl": self.zarr_url,
                     "encodingFormat": "application/x-zarr",
                     "md5": md5_hash,
@@ -214,17 +213,9 @@ class DynamicCroissantConverter:
             "recordSet": [
                 {
                     "@type": "cr:RecordSet",
-                    "@id": (
-                        f"nasa_power_data_{year}_{month:02d}"
-                        if month
-                        else f"nasa_power_data_{year}"
-                    ),
-                    "name": (
-                        f"nasa_power_data_{year}_{month:02d}"
-                        if month
-                        else f"nasa_power_data_{year}"
-                    ),
-                    "description": f"NASA POWER climate data {description_suffix}",
+                    "@id": "FIXME",
+                    "name": "FIXME",
+                    "description": "FIXME",
                     "field": [],
                 }
             ],
@@ -234,28 +225,16 @@ class DynamicCroissantConverter:
         fields = croissant["recordSet"][0]["field"]
 
         # Add coordinate fields
-        for coord_name, coord in self.ds_subset.coords.items():
+        for coord_name, coord in self.ds.coords.items():
             coord_field = {
                 "@type": "cr:Field",
-                "@id": (
-                    f"nasa_power_data_{year}_{month:02d}/{coord_name}"
-                    if month
-                    else f"nasa_power_data_{year}/{coord_name}"
-                ),
-                "name": (
-                    f"nasa_power_data_{year}_{month:02d}/{coord_name}"
-                    if month
-                    else f"nasa_power_data_{year}/{coord_name}"
-                ),
+                "@id": "FIXME",
+                "name": "FIXME",
                 "description": f"Coordinate: {coord_name}",
                 "dataType": "sc:Float" if coord.dtype.kind == "f" else "sc:Date",
                 "source": {
                     "fileObject": {
-                        "@id": (
-                            f"zarr-store-{year}-{month:02d}"
-                            if month
-                            else f"zarr-store-{year}"
-                        )
+                        "@id": "FIXME"
                     },
                     "extract": {"jsonPath": f"$.{coord_name}"},
                 },
@@ -293,36 +272,24 @@ class DynamicCroissantConverter:
             fields.append(coord_field)
 
         # Add data variable fields
-        for var_name, var in self.ds_subset.data_vars.items():
+        for var_name, var in self.ds.data_vars.items():
             var_field = {
                 "@type": "cr:Field",
-                "@id": (
-                    f"nasa_power_data_{year}_{month:02d}/{var_name}"
-                    if month
-                    else f"nasa_power_data_{year}/{var_name}"
-                ),
-                "name": (
-                    f"nasa_power_data_{year}_{month:02d}/{var_name}"
-                    if month
-                    else f"nasa_power_data_{year}/{var_name}"
-                ),
+                "@id": "FIXME",
+                "name": "FIXME",
                 "description": var.attrs.get("long_name", var_name),
                 "dataType": "sc:Float",
                 "source": {
                     "fileObject": {
-                        "@id": (
-                            f"zarr-store-{year}-{month:02d}"
-                            if month
-                            else f"zarr-store-{year}"
-                        )
+                        "@id": "FIXME"
                     },
                     "extract": {"jsonPath": f"$.{var_name}"},
                 },
                 "geocr:dataShape": list(var.shape),
                 "geocr:validRange": (
                     {
-                        "min": float(var.attrs.get("valid_min", 0.0)),
-                        "max": float(var.attrs.get("valid_max", 100.0)),
+                        "min": float(var.attrs.get("valid_min", "UNDEFINED")),
+                        "max": float(var.attrs.get("valid_max", "UNDEFINED")),
                     }
                     if var.attrs.get("valid_min") is not None
                     and var.attrs.get("valid_max") is not None
@@ -332,6 +299,7 @@ class DynamicCroissantConverter:
                 "geocr:standardName": var.attrs.get("standard_name", ""),
                 "geocr:definition": var.attrs.get("definition", ""),
                 "geocr:cellMethods": var.attrs.get("cell_methods", ""),
+                "geocr:cellMeasures": var.attrs.get("cell_measures", ""),
             }
             # Remove None values
             var_field = {k: v for k, v in var_field.items() if v is not None}
@@ -339,7 +307,7 @@ class DynamicCroissantConverter:
 
         # Save metadata
         with open(output_file, "w", encoding="utf-8") as f:
-            json.dump(croissant, f, indent=2, ensure_ascii=False)
+            json.dump(croissant, f, indent=4, ensure_ascii=False)
 
         print(f"GeoCroissant metadata saved to {output_file}")
         print(f"Total fields: {len(fields)}")
@@ -348,54 +316,52 @@ class DynamicCroissantConverter:
 
     def convert(
         self,
-        year: int,
-        month: Optional[int] = None,
-        variables: Optional[list] = None,
         output_file: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Complete conversion pipeline
 
         Args:
-            year: Year to convert
-            month: Month to convert (1-12), if None converts entire year
-            variables: List of variables to include, if None includes all
+            metadata: Metadata to include in the conversion (overrides instance metadata)
             output_file: Output file path, if None auto-generated
 
         Returns:
             dict: GeoCroissant metadata
         """
-        print(
-            "Starting conversion for"
-            f" {calendar.month_name[month] if month else 'year'} {year}..."
-        )
+        print("Starting conversion for data...")
 
         # Load dataset
         if not self.load_dataset():
             return {}
 
-        # Subset data
-        if not self.subset_data(year, month, variables):
-            return {}
-
         # Generate metadata
-        metadata = self.create_croissant_metadata(year, month, output_file)
+        croissant_record = self.create_croissant_metadata(output_file=output_file)
 
         print("Conversion completed successfully!")
-        return metadata
+        return croissant_record
 
-# In[13]:
 
 print("\n\n\n----------------------------------\n  DEMONSTRATE USAGE\n----------------------------------\n")
-converter = DynamicCroissantConverter()
+converter = DynamicCroissantConverter(
+    zarr_url=zpath,
+    metadata={
+        "name": "ECMWF ERA5 Reanalysis (2000-2020)",
+        "description": "ERA5 reanalysis data from ECMWF, covering 2000-2020, with 2m temperature.",
+        "creator": "ECMWF",
+        "creatorUrl": "https://www.ecmwf.int/en/forecasts/datasets/reanalysis-datasets/era5",
+        "keywords": ["reanalysis", "climate", "temperature", "ERA5", "ECMWF"],
+        "citeAs": "ECMWF (2021). ERA5 reanalysis data. Copernicus Climate Change Service (C3S)."
+    }
+)
+converter.convert(output_file=cpath)
 
-# July 2021 (as we just demonstrated)
-converter.convert(year=2021, month=7)
+print("\n\n\n----------------------------------\n  VALIDATE WITH MLCROISSANT\n----------------------------------\n")
 
-print("mlcroissant validate --jsonld=NASA_POWER_2021_07_croissant.json")
+print(f"mlcroissant validate --jsonld={cpath}")
+
 
 # Load metadata
-with open("NASA_POWER_2021_07_croissant.json", "r") as f:
+with open(cpath, "r") as f:
     metadata = json.load(f)
 
 # Extract Zarr URL from metadata
@@ -404,34 +370,3 @@ for dist in metadata.get("distribution", []):
     if dist.get("encodingFormat") == "application/x-zarr":
         zarr_url = dist.get("contentUrl")
         break
-
-print(f"Loading data from: {zarr_url}")
-
-# Load data directly from S3
-ds = xr.open_zarr(zarr_url, storage_options={"anon": True})
-
-# Extract time range from metadata for subsetting
-temporal_extent = metadata.get("geocr:temporalExtent", {})
-start_date = temporal_extent.get("startDate", "").split("T")[0]
-end_date = temporal_extent.get("endDate", "").split("T")[0]
-
-if start_date and end_date:
-    print(f"Subsetting data for {start_date} to {end_date}")
-    ds = ds.sel(time=slice(start_date, end_date))
-
-# Plot T2M Temperature
-if "T2M" in ds.data_vars:
-    fig, ax = plt.subplots(figsize=(12, 8))
-    data = ds["T2M"].isel(time=0)
-    im = data.plot(ax=ax, cmap="RdYlBu_r", robust=True)
-    ax.set_title("Temperature (T2M) - 2020", fontweight="bold", fontsize=14)
-    ax.set_xlabel("Longitude", fontsize=12)
-    ax.set_ylabel("Latitude", fontsize=12)
-    plt.tight_layout()
-    plt.show()
-
-    print(f"T2M plot complete using metadata: NASA_POWER_2020_croissant.json")
-    print(f"   - Data source: {zarr_url}")
-    print(f"   - Time period: {start_date} to {end_date}")
-else:
-    print("Error: T2M variable not found in dataset")

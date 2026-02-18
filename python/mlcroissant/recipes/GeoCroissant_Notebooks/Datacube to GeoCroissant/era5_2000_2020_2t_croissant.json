@@ -1,0 +1,192 @@
+{
+    "@context": {
+        "@language": "en",
+        "@vocab": "https://schema.org/",
+        "citeAs": "cr:citeAs",
+        "column": "cr:column",
+        "conformsTo": "dct:conformsTo",
+        "cr": "http://mlcommons.org/croissant/",
+        "geocr": "http://mlcommons.org/croissant/geocr/",
+        "rai": "http://mlcommons.org/croissant/RAI/",
+        "dct": "http://purl.org/dc/terms/",
+        "sc": "https://schema.org/",
+        "data": {
+            "@id": "cr:data",
+            "@type": "@json"
+        },
+        "examples": {
+            "@id": "cr:examples",
+            "@type": "@json"
+        },
+        "dataBiases": "cr:dataBiases",
+        "dataCollection": "cr:dataCollection",
+        "dataType": {
+            "@id": "cr:dataType",
+            "@type": "@vocab"
+        },
+        "extract": "cr:extract",
+        "field": "cr:field",
+        "fileProperty": "cr:fileProperty",
+        "fileObject": "cr:fileObject",
+        "fileSet": "cr:fileSet",
+        "format": "cr:format",
+        "includes": "cr:includes",
+        "isLiveDataset": "cr:isLiveDataset",
+        "jsonPath": "cr:jsonPath",
+        "key": "cr:key",
+        "md5": "cr:md5",
+        "parentField": "cr:parentField",
+        "path": "cr:path",
+        "personalSensitiveInformation": "cr:personalSensitiveInformation",
+        "recordSet": "cr:recordSet",
+        "references": "cr:references",
+        "regex": "cr:regex",
+        "repeated": "cr:repeated",
+        "replace": "cr:replace",
+        "samplingRate": "cr:samplingRate",
+        "separator": "cr:separator",
+        "source": "cr:source",
+        "subField": "cr:subField",
+        "transform": "cr:transform"
+    },
+    "@type": "sc:Dataset",
+    "name": "ECMWF ERA5 Reanalysis (2000-2020)",
+    "alternateName": [],
+    "description": "ERA5 reanalysis data from ECMWF, covering 2000-2020, with 2m temperature.",
+    "conformsTo": "http://mlcommons.org/croissant/1.0",
+    "version": "1.0.0",
+    "creator": {
+        "@type": "Organization",
+        "name": "ECMWF",
+        "url": "https://www.ecmwf.int/en/forecasts/datasets/reanalysis-datasets/era5"
+    },
+    "url": null,
+    "keywords": [
+        "reanalysis",
+        "climate",
+        "temperature",
+        "ERA5",
+        "ECMWF"
+    ],
+    "citeAs": "ECMWF (2021). ERA5 reanalysis data. Copernicus Climate Change Service (C3S).",
+    "datePublished": "2026-02-18T23:01:55",
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "geocr:BoundingBox": [
+        -67.75,
+        -67.75,
+        137.75,
+        60.0
+    ],
+    "geocr:temporalExtent": {
+        "startDate": "2000-01-01T00:00:00Z",
+        "endDate": "2000-01-10T23:00:00Z"
+    },
+    "geocr:spatialResolution": "0.25° lat x 0.25° lon",
+    "geocr:coordinateReferenceSystem": "EPSG:4326",
+    "geocr:mlTask": {
+        "FIXME_@type": "geocr:Regression",
+        "FIXME_taskType": "climate_prediction",
+        "FIXME_evaluationMetric": "RMSE",
+        "FIXME_applicationDomain": "climate_monitoring"
+    },
+    "distribution": [
+        {
+            "@type": "cr:FileObject",
+            "@id": "FIXME",
+            "name": "FIXME",
+            "description": "FIXME",
+            "contentUrl": "DATASET_CACHE/ecmwf-era5X_oper_an_sfc_2000_2020_2t_repack.kr1.0.zarr",
+            "encodingFormat": "application/x-zarr",
+            "md5": "19f5113db4664d480217e2a3fa53aa81"
+        }
+    ],
+    "recordSet": [
+        {
+            "@type": "cr:RecordSet",
+            "@id": "FIXME",
+            "name": "FIXME",
+            "description": "FIXME",
+            "field": [
+                {
+                    "@type": "cr:Field",
+                    "@id": "FIXME",
+                    "name": "FIXME",
+                    "description": "Coordinate: latitude",
+                    "dataType": "sc:Float",
+                    "source": {
+                        "fileObject": {
+                            "@id": "FIXME"
+                        },
+                        "extract": {
+                            "jsonPath": "$.latitude"
+                        }
+                    },
+                    "geocr:dataShape": [
+                        512
+                    ]
+                },
+                {
+                    "@type": "cr:Field",
+                    "@id": "FIXME",
+                    "name": "FIXME",
+                    "description": "Coordinate: longitude",
+                    "dataType": "sc:Float",
+                    "source": {
+                        "fileObject": {
+                            "@id": "FIXME"
+                        },
+                        "extract": {
+                            "jsonPath": "$.longitude"
+                        }
+                    },
+                    "geocr:dataShape": [
+                        512
+                    ]
+                },
+                {
+                    "@type": "cr:Field",
+                    "@id": "FIXME",
+                    "name": "FIXME",
+                    "description": "Coordinate: time",
+                    "dataType": "sc:Date",
+                    "source": {
+                        "fileObject": {
+                            "@id": "FIXME"
+                        },
+                        "extract": {
+                            "jsonPath": "$.time"
+                        }
+                    },
+                    "geocr:dataShape": [
+                        240
+                    ]
+                },
+                {
+                    "@type": "cr:Field",
+                    "@id": "FIXME",
+                    "name": "FIXME",
+                    "description": "2 metre temperature",
+                    "dataType": "sc:Float",
+                    "source": {
+                        "fileObject": {
+                            "@id": "FIXME"
+                        },
+                        "extract": {
+                            "jsonPath": "$.surface_temperature"
+                        }
+                    },
+                    "geocr:dataShape": [
+                        240,
+                        512,
+                        512
+                    ],
+                    "geocr:units": "K",
+                    "geocr:standardName": "",
+                    "geocr:definition": "",
+                    "geocr:cellMethods": "",
+                    "geocr:cellMeasures": ""
+                }
+            ]
+        }
+    ]
+}
