@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import cf_xarray # noqa: F401
+import cf_xarray
 from datetime import datetime
 import pandas as pd
 from pathlib import Path
@@ -28,7 +28,6 @@ def load_zarr(zarr_path: str | Path) -> xr.Dataset:
 def main():
     ds = load_data_from_uri(zpath, {})
     print(ds)
-    print(ds.cf["latitude"])
     print("Done loading Zarr dataset")
 
 main()
@@ -93,7 +92,7 @@ class DynamicCroissantConverter:
         """Generate MD5 checksum for content"""
         return hashlib.md5(content.encode("utf-8")).hexdigest()
 
-    def create_croissant_metadata(self, output_file: Optional[str] = "record.json") -> Dict[str, Any]:
+    def create_croissant_metadata(self, output_file: str = "record.json") -> Dict[str, Any]:
         """
         Create GeoCroissant metadata for the data
 
@@ -192,19 +191,14 @@ class DynamicCroissantConverter:
             ]],
             "geocr:temporalExtent": {"startDate": start, "endDate": end},
             "geocr:spatialResolution": f"{lat_diff}° lat x {lon_diff}° lon",
-            "geocr:coordinateReferenceSystem": "EPSG:4326",
-            "geocr:mlTask": {
-                "FIXME_@type": "geocr:Regression",
-                "FIXME_taskType": "climate_prediction",
-                "FIXME_evaluationMetric": "RMSE",
-                "FIXME_applicationDomain": "climate_monitoring",
-            },
+            "geocr:coordinateReferenceSystem": self.metadata.get("crs", "EPSG:4326"),
+            "geocr:mlTask": self.metadata.get("mlTask", None),
             "distribution": [
                 {
                     "@type": "cr:FileObject",
-                    "@id": "FIXME",
-                    "name": "FIXME",
-                    "description": "FIXME",
+                    "@id": self.zarr_url,
+                    "name": self.zarr_url.split("/")[-1],
+                    "description": f"Zarr dataset at: {self.zarr_url}",
                     "contentUrl": self.zarr_url,
                     "encodingFormat": "application/x-zarr",
                     "md5": md5_hash,
@@ -213,9 +207,9 @@ class DynamicCroissantConverter:
             "recordSet": [
                 {
                     "@type": "cr:RecordSet",
-                    "@id": "FIXME",
-                    "name": "FIXME",
-                    "description": "FIXME",
+                    "@id": "variables_and_coordinates",
+                    "name": "Variable and Coordinate Fields",
+                    "description": "Fields for variables and coordinates in the dataset",
                     "field": [],
                 }
             ],
@@ -226,46 +220,27 @@ class DynamicCroissantConverter:
 
         # Add coordinate fields
         for coord_name, coord in self.ds.coords.items():
+            mn, mx = [float(i) for i in [coord.values.min(), coord.values.max()]]
             coord_field = {
                 "@type": "cr:Field",
-                "@id": "FIXME",
-                "name": "FIXME",
+                "@id": coord_name,
+                "name": coord_name,
                 "description": f"Coordinate: {coord_name}",
                 "dataType": "sc:Float" if coord.dtype.kind == "f" else "sc:Date",
                 "source": {
                     "fileObject": {
-                        "@id": "FIXME"
+                        "@id": self.zarr_url
                     },
                     "extract": {"jsonPath": f"$.{coord_name}"},
                 },
                 "geocr:dataShape": list(coord.shape),
                 "geocr:validRange": (
                     {
-                        "min": (
-                            -90.0
-                            if coord_name == "lat"
-                            else -180.0
-                            if coord_name == "lon"
-                            else None
-                        ),
-                        "max": (
-                            90.0
-                            if coord_name == "lat"
-                            else 180.0
-                            if coord_name == "lon"
-                            else None
-                        ),
+                        "min": mn,
+                        "max": mx,
                     }
-                    if coord_name in ["lat", "lon"]
-                    else None
                 ),
-                "geocr:units": (
-                    "degrees_north"
-                    if coord_name == "lat"
-                    else "degrees_east"
-                    if coord_name == "lon"
-                    else None
-                ),
+                "geocr:units": coord.attrs.get("units", "")
             }
             # Remove None values
             coord_field = {k: v for k, v in coord_field.items() if v is not None}
@@ -275,13 +250,13 @@ class DynamicCroissantConverter:
         for var_name, var in self.ds.data_vars.items():
             var_field = {
                 "@type": "cr:Field",
-                "@id": "FIXME",
-                "name": "FIXME",
+                "@id": var_name,
+                "name": var_name,
                 "description": var.attrs.get("long_name", var_name),
                 "dataType": "sc:Float",
                 "source": {
                     "fileObject": {
-                        "@id": "FIXME"
+                        "@id": self.zarr_url
                     },
                     "extract": {"jsonPath": f"$.{var_name}"},
                 },
@@ -300,6 +275,7 @@ class DynamicCroissantConverter:
                 "geocr:definition": var.attrs.get("definition", ""),
                 "geocr:cellMethods": var.attrs.get("cell_methods", ""),
                 "geocr:cellMeasures": var.attrs.get("cell_measures", ""),
+                "geocr:chunkSizes": {d: next(iter(v)) for d, v in var.chunksizes.items()}  
             }
             # Remove None values
             var_field = {k: v for k, v in var_field.items() if v is not None}
@@ -316,7 +292,7 @@ class DynamicCroissantConverter:
 
     def convert(
         self,
-        output_file: Optional[str] = None,
+        output_file: str = "record.json"
     ) -> Dict[str, Any]:
         """
         Complete conversion pipeline
@@ -350,7 +326,15 @@ converter = DynamicCroissantConverter(
         "creator": "ECMWF",
         "creatorUrl": "https://www.ecmwf.int/en/forecasts/datasets/reanalysis-datasets/era5",
         "keywords": ["reanalysis", "climate", "temperature", "ERA5", "ECMWF"],
-        "citeAs": "ECMWF (2021). ERA5 reanalysis data. Copernicus Climate Change Service (C3S)."
+        "citeAs": "ECMWF (2021). ERA5 reanalysis data. Copernicus Climate Change Service (C3S).",
+        "mlTask": {
+            "@type": "geocr:Regression",
+            "taskType": "climate_prediction",
+            "evaluationMetric": "RMSE",
+            "applicationDomain": "climate_monitoring",
+        },
+        "datePublished": "2021-01-01T00:00:00Z",
+        "crs": "EPSG:4326"
     }
 )
 converter.convert(output_file=cpath)

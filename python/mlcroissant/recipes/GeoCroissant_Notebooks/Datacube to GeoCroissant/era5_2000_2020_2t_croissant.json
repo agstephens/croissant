@@ -69,7 +69,7 @@
         "ECMWF"
     ],
     "citeAs": "ECMWF (2021). ERA5 reanalysis data. Copernicus Climate Change Service (C3S).",
-    "datePublished": "2026-02-18T23:01:55",
+    "datePublished": "2021-01-01T00:00:00Z",
     "license": "https://creativecommons.org/licenses/by/4.0/",
     "geocr:BoundingBox": [
         -67.75,
@@ -84,17 +84,17 @@
     "geocr:spatialResolution": "0.25° lat x 0.25° lon",
     "geocr:coordinateReferenceSystem": "EPSG:4326",
     "geocr:mlTask": {
-        "FIXME_@type": "geocr:Regression",
-        "FIXME_taskType": "climate_prediction",
-        "FIXME_evaluationMetric": "RMSE",
-        "FIXME_applicationDomain": "climate_monitoring"
+        "@type": "geocr:Regression",
+        "taskType": "climate_prediction",
+        "evaluationMetric": "RMSE",
+        "applicationDomain": "climate_monitoring"
     },
     "distribution": [
         {
             "@type": "cr:FileObject",
-            "@id": "FIXME",
-            "name": "FIXME",
-            "description": "FIXME",
+            "@id": "DATASET_CACHE/ecmwf-era5X_oper_an_sfc_2000_2020_2t_repack.kr1.0.zarr",
+            "name": "ecmwf-era5X_oper_an_sfc_2000_2020_2t_repack.kr1.0.zarr",
+            "description": "Zarr dataset at: DATASET_CACHE/ecmwf-era5X_oper_an_sfc_2000_2020_2t_repack.kr1.0.zarr",
             "contentUrl": "DATASET_CACHE/ecmwf-era5X_oper_an_sfc_2000_2020_2t_repack.kr1.0.zarr",
             "encodingFormat": "application/x-zarr",
             "md5": "19f5113db4664d480217e2a3fa53aa81"
@@ -103,19 +103,19 @@
     "recordSet": [
         {
             "@type": "cr:RecordSet",
-            "@id": "FIXME",
-            "name": "FIXME",
-            "description": "FIXME",
+            "@id": "variables_and_coordinates",
+            "name": "Variable and Coordinate Fields",
+            "description": "Fields for variables and coordinates in the dataset",
             "field": [
                 {
                     "@type": "cr:Field",
-                    "@id": "FIXME",
-                    "name": "FIXME",
+                    "@id": "latitude",
+                    "name": "latitude",
                     "description": "Coordinate: latitude",
                     "dataType": "sc:Float",
                     "source": {
                         "fileObject": {
-                            "@id": "FIXME"
+                            "@id": "DATASET_CACHE/ecmwf-era5X_oper_an_sfc_2000_2020_2t_repack.kr1.0.zarr"
                         },
                         "extract": {
                             "jsonPath": "$.latitude"
@@ -123,17 +123,22 @@
                     },
                     "geocr:dataShape": [
                         512
-                    ]
+                    ],
+                    "geocr:validRange": {
+                        "min": -67.75,
+                        "max": 60.0
+                    },
+                    "geocr:units": "degrees_north"
                 },
                 {
                     "@type": "cr:Field",
-                    "@id": "FIXME",
-                    "name": "FIXME",
+                    "@id": "longitude",
+                    "name": "longitude",
                     "description": "Coordinate: longitude",
                     "dataType": "sc:Float",
                     "source": {
                         "fileObject": {
-                            "@id": "FIXME"
+                            "@id": "DATASET_CACHE/ecmwf-era5X_oper_an_sfc_2000_2020_2t_repack.kr1.0.zarr"
                         },
                         "extract": {
                             "jsonPath": "$.longitude"
@@ -141,17 +146,22 @@
                     },
                     "geocr:dataShape": [
                         512
-                    ]
+                    ],
+                    "geocr:validRange": {
+                        "min": 10.0,
+                        "max": 137.75
+                    },
+                    "geocr:units": ""
                 },
                 {
                     "@type": "cr:Field",
-                    "@id": "FIXME",
-                    "name": "FIXME",
+                    "@id": "time",
+                    "name": "time",
                     "description": "Coordinate: time",
                     "dataType": "sc:Date",
                     "source": {
                         "fileObject": {
-                            "@id": "FIXME"
+                            "@id": "DATASET_CACHE/ecmwf-era5X_oper_an_sfc_2000_2020_2t_repack.kr1.0.zarr"
                         },
                         "extract": {
                             "jsonPath": "$.time"
@@ -159,17 +169,22 @@
                     },
                     "geocr:dataShape": [
                         240
-                    ]
+                    ],
+                    "geocr:validRange": {
+                        "min": 9.466848e+17,
+                        "max": 9.475452e+17
+                    },
+                    "geocr:units": ""
                 },
                 {
                     "@type": "cr:Field",
-                    "@id": "FIXME",
-                    "name": "FIXME",
+                    "@id": "surface_temperature",
+                    "name": "surface_temperature",
                     "description": "2 metre temperature",
                     "dataType": "sc:Float",
                     "source": {
                         "fileObject": {
-                            "@id": "FIXME"
+                            "@id": "DATASET_CACHE/ecmwf-era5X_oper_an_sfc_2000_2020_2t_repack.kr1.0.zarr"
                         },
                         "extract": {
                             "jsonPath": "$.surface_temperature"
@@ -184,7 +199,12 @@
                     "geocr:standardName": "",
                     "geocr:definition": "",
                     "geocr:cellMethods": "",
-                    "geocr:cellMeasures": ""
+                    "geocr:cellMeasures": "",
+                    "geocr:chunkSizes": {
+                        "time": 120,
+                        "latitude": 512,
+                        "longitude": 512
+                    }
                 }
             ]
         }

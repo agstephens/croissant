@@ -1,8 +1,10 @@
 cf_xarray
 dask
 fsspec
+graphviz
 matplotlib
 nbconvert
+pygraphviz
 xarray
 zarr
 
